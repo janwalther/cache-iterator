@@ -18,7 +18,7 @@ class CacheIteratorTest extends \PHPUnit_Framework_TestCase
     }
 
     /** @test */
-    public function returns_same_entries_on_multiple_iterations()
+    public function it_returns_same_entries_on_multiple_iterations()
     {
         $values1 = array();
         foreach($this->iterator as $value) {
@@ -34,6 +34,26 @@ class CacheIteratorTest extends \PHPUnit_Framework_TestCase
         static::assertEquals($values1, iterator_to_array($this->iterator));
         static::assertCount(3, $values1);
         static::assertSame(3, $this->innerIterator->getMethodCalls());
+    }
+
+    /** @test */
+    public function it_is_nestable()
+    {
+        $values1 = array();
+        $values2 = array();
+        foreach($this->iterator as $value1) {
+            $values1[] = $value1;
+
+            $values2 = array();
+            foreach(clone $this->iterator as $value2) {
+                $values2[] = $value2;
+            }
+        }
+
+        static::assertEquals($values1, $values2);
+        static::assertEquals($values1, iterator_to_array($this->iterator));
+        static::assertCount(3, $values1);
+        static::assertSame(1, $this->innerIterator->getMethodCalls()); // other methodCalls go to cloned iterator
     }
 }
 
