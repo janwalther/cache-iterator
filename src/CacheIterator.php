@@ -3,40 +3,61 @@ namespace janwalther\CacheIterator;
 
 class CacheIterator implements \Iterator
 {
-    private $iterator;
-    private $cache = [];
+    private $cache;
 
-    public function __construct(\Iterator $it)
+    /** @var \Iterator */
+    private $innerIterator;
+
+    /**
+     * CacheIterator constructor.
+     *
+     * @param \Iterator $innerIterator
+     */
+    public function __construct(\Iterator $innerIterator)
     {
-        $this->iterator = $it;
+        $this->innerIterator = $innerIterator;
+        $this->cache = new \ArrayObject();
     }
 
     public function current()
     {
-        if (!isset($this->cache[$this->key()])) {
-            $this->cache[$this->key()] = $this->iterator->current();
+        if (!isset($this->cache[$this->getInnerIterator()->key()])) {
+            $this->cache($this->getInnerIterator()->current());
         }
 
         return $this->cache[$this->key()];
     }
 
-    public function key()
-    {
-        return $this->iterator->key();
+    protected function cache($value) {
+        $this->cache[$this->key()] = $value;
     }
 
     public function next()
     {
-        $this->iterator->next();
+        $this->getInnerIterator()->next();
     }
 
-    public function rewind()
+    public function key()
     {
-        $this->iterator->rewind();
+        return $this->getInnerIterator()->key();
     }
 
     public function valid()
     {
-        return $this->iterator->valid();
+        return $this->getInnerIterator()->valid();
+    }
+
+    public function rewind()
+    {
+        $this->getInnerIterator()->rewind();
+    }
+
+    private function getInnerIterator() {
+        return $this->innerIterator;
+    }
+
+    public function __clone()
+    {
+        $this->innerIterator = clone $this->innerIterator;
     }
 }
